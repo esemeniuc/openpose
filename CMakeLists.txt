@@ -936,12 +936,14 @@ message(STATUS "Models Downloaded.")
 
 ### PYTHON
 if (BUILD_PYTHON)
+  message("BUILD_PYTHON is ON")
   if (WIN32)
     execute_process(COMMAND cmd /c cd ${CMAKE_SOURCE_DIR} & git submodule update --init 3rdparty/pybind11/)
     add_subdirectory(3rdparty/pybind11)
     add_subdirectory(python)
   elseif (UNIX OR APPLE)
     if (Caffe_FOUND)
+      message("CAFFE_FOUND BUILD_PYTHON")
       execute_process(COMMAND git submodule update --init ${CMAKE_SOURCE_DIR}/3rdparty/pybind11/)
       # execute_process(COMMAND git submodule update --init --recursive --remote) # This would initialize them all
       add_subdirectory(3rdparty/pybind11)
