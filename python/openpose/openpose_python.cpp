@@ -327,6 +327,53 @@ template <> struct type_caster<op::Array<float>> {
     };
 }} // namespace pybind11::detail
 
+// Numpy - op::Array<long long> interop
+namespace pybind11 { namespace detail {
+
+template <> struct type_caster<op::Array<long long>> {
+    public:
+
+        PYBIND11_TYPE_CASTER(op::Array<long long>, _("numpy.ndarray"));
+
+        // Cast numpy to op::Array<long long>
+        bool load(handle src, bool imp)
+        {
+            // array b(src, true);
+            array b = reinterpret_borrow<array>(src);
+            buffer_info info = b.request();
+
+            if (info.format != format_descriptor<long long>::format())
+                throw std::runtime_error("op::Array only supports long long now");
+
+            //std::vector<int> a(info.shape);
+            std::vector<int> shape(std::begin(info.shape), std::end(info.shape));
+
+            // No copy
+            value = op::Array<long long>(shape, (long long*)info.ptr);
+            // Copy
+            //value = op::Array<long long>(shape);
+            //memcpy(value.getPtr(), info.ptr, value.getVolume()*sizeof(long long));
+
+            return true;
+        }
+
+        // Cast op::Array<long long> to numpy
+        static handle cast(const op::Array<long long> &m, return_value_policy, handle defval)
+        {
+            std::string format = format_descriptor<long long>::format();
+            return array(buffer_info(
+                m.getPseudoConstPtr(),/* Pointer to buffer */
+                sizeof(long long),    /* Size of one scalar */
+                format,               /* Python struct-style format descriptor */
+                m.getSize().size(),   /* Number of dimensions */
+                m.getSize(),          /* Buffer dimensions */
+                m.getStride()         /* Strides (in bytes) for each index */
+                )).release();
+        }
+
+    };
+}} // namespace pybind11::detail
+
 // Numpy - cv::Mat interop
 namespace pybind11 { namespace detail {
 
